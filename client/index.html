@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Animator</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Lets ES modules write `import * as THREE from 'three'` without a bundler -->
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div class="app">
+
+    <!-- LEFT PANEL -->
+    <aside class="panel">
+      <section class="panel-section">
+        <h2>Add shape</h2>
+        <div class="add-buttons">
+          <button data-add="square">Square</button>
+          <button data-add="triangle">Triangle</button>
+          <button data-add="circle">Circle</button>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>Shapes</h2>
+        <ul id="shape-list" class="shape-list"></ul>
+      </section>
+
+      <section class="panel-section" id="props" hidden>
+        <h2>Properties</h2>
+        <div class="prop-row">
+          <label for="prop-x">x</label>
+          <input id="prop-x" data-prop="x" type="number" step="1">
+          <button data-animate="x">Animate</button>
+        </div>
+        <div class="prop-row">
+          <label for="prop-y">y</label>
+          <input id="prop-y" data-prop="y" type="number" step="1">
+          <button data-animate="y">Animate</button>
+        </div>
+        <div class="prop-row">
+          <label for="prop-scale">scale</label>
+          <input id="prop-scale" data-prop="scale" type="number" step="0.1">
+          <button data-animate="scale">Animate</button>
+        </div>
+        <div class="prop-row">
+          <label for="prop-rotation">rotation</label>
+          <input id="prop-rotation" data-prop="rotation" type="number" step="5">
+          <button data-animate="rotation">Animate</button>
+        </div>
+        <div class="prop-row">
+          <label for="prop-color">color</label>
+          <input id="prop-color" data-prop="color" type="color">
+          <button data-animate="color">Animate</button>
+        </div>
+        <div class="prop-row">
+          <label for="prop-opacity">opacity</label>
+          <input id="prop-opacity" data-prop="opacity" type="number" step="0.05" min="0" max="1">
+          <button data-animate="opacity">Animate</button>
+        </div>
+        <label class="prop-check" id="ring-row">
+          <input type="checkbox" id="prop-ring"> Ring outline
+        </label>
+        <p class="hint">Animated properties are edited on their clips in the timeline.</p>
+        <button id="delete-shape" class="danger">Delete shape</button>
+      </section>
+    </aside>
+
+    <!-- STAGE -->
+    <main class="stage">
+      <canvas id="canvas" width="1280" height="720"></canvas>
+    </main>
+
+    <!-- TIMELINE -->
+    <section class="timeline">
+      <div class="controls">
+        <button id="play-btn">Play</button>
+        <label class="control-check"><input type="checkbox" id="loop-toggle" checked> Loop</label>
+        <label>Duration <input type="number" id="duration-input" min="1" max="60" step="0.5"> s</label>
+        <span id="time-readout" class="time-readout">0.00 s</span>
+        <span class="spacer"></span>
+        <button id="export-btn">Export</button>
+      </div>
+
+      <div class="timeline-scroll">
+        <div class="timeline-content" id="timeline-content">
+          <div class="track-row ruler-row">
+            <div class="track-label"></div>
+            <div class="lane ruler" id="ruler"></div>
+          </div>
+          <div id="tracks"></div>
+          <div class="playhead-layer">
+            <div class="playhead" id="playhead"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Opens when a clip is clicked -->
+      <div class="clip-editor" id="clip-editor" hidden>
+        <div class="clip-editor-title" id="clip-editor-title"></div>
+        <label>From <input id="clip-from"></label>
+        <label>To <input id="clip-to"></label>
+        <label>Easing
+          <select id="clip-easing">
+            <option value="linear">linear</option>
+            <option value="ease-in">ease-in</option>
+            <option value="ease-out">ease-out</option>
+            <option value="ease-in-out">ease-in-out</option>
+          </select>
+        </label>
+        <div class="clip-editor-buttons">
+          <button id="clip-delete" class="danger">Delete clip</button>
+          <button id="clip-close">Close</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- EXPORT DIALOG -->
+  <dialog id="export-dialog" class="export-dialog">
+    <form method="dialog" id="export-form">
+      <h2>Export</h2>
+      <label>Format
+        <select id="export-format">
+          <option value="mp4">MP4</option>
+          <option value="gif">GIF</option>
+        </select>
+      </label>
+      <label>FPS
+        <select id="export-fps">
+          <option value="24">24</option>
+          <option value="30" selected>30</option>
+          <option value="60">60</option>
+        </select>
+      </label>
+      <label>Resolution
+        <select id="export-resolution">
+          <option value="854x480">480p (854 x 480)</option>
+          <option value="1280x720" selected>720p (1280 x 720)</option>
+          <option value="1920x1080">1080p (1920 x 1080)</option>
+        </select>
+      </label>
+      <progress id="export-progress" value="0" max="1"></progress>
+      <p id="export-status" class="hint"></p>
+      <div class="dialog-buttons">
+        <button type="button" id="export-start">Start export</button>
+        <button type="submit" id="export-close">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

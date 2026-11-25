@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Local project config
+CLAUDE.md
+.claude/
+
+# Document files (README.md is the only one kept)
+*.md
+!README.md
+*.txt
+*.pdf
+*.doc
+*.docx
+*.odt
+*.rtf
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+*.csv
+
+# Exported media
+*.mp4
+*.gif
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.*

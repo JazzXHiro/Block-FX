@@ -1,0 +1,378 @@
+/* ==========================================================================
+   1. Variables
+   ========================================================================== */
+:root {
+  --bg: #bfbfbf;
+  --panel: #d9d9d9;
+  --panel-light: #e8e8e8;
+  --border: #222222;
+  --border-soft: #9a9a9a;
+  --text: #111111;
+  --text-muted: #555555;
+  --accent: #e8590c;          /* playhead + selected items */
+  --accent-light: #ffd8c2;
+  --clip: #ffffff;
+  --danger: #b42318;
+
+  --panel-width: 280px;
+  --timeline-height: 280px;
+  --label-width: 140px;
+  --row-height: 24px;
+
+  --font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   2. Layout
+   ========================================================================== */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.app {
+  display: grid;
+  grid-template-columns: var(--panel-width) 1fr;
+  grid-template-rows: 1fr var(--timeline-height);
+  height: 100vh;
+}
+
+.panel    { grid-column: 1; grid-row: 1 / 3; }
+.stage    { grid-column: 2; grid-row: 1; }
+.timeline { grid-column: 2; grid-row: 2; }
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  padding: 4px 10px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+button:hover { background: #ffffff; }
+button.danger { color: var(--danger); border-color: var(--danger); }
+
+input[type="number"], input:not([type]), select {
+  padding: 3px 4px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.hint { margin: 6px 0; color: var(--text-muted); font-size: 12px; }
+[hidden] { display: none !important; }
+
+/* ==========================================================================
+   3. Left panel
+   ========================================================================== */
+.panel {
+  background: var(--panel);
+  border-right: 2px solid var(--border);
+  overflow-y: auto;
+}
+
+.panel-section {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.add-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.add-buttons button { flex: 1; }
+
+.shape-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  min-height: 28px;
+}
+
+.shape-list li {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+}
+
+.shape-list li:last-child { border-bottom: none; }
+.shape-list li:hover { background: var(--panel-light); }
+.shape-list li.selected { background: var(--accent); color: #ffffff; }
+
+.prop-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.prop-row input { width: 100%; min-width: 0; }
+.prop-row input[type="color"] { height: 26px; padding: 0 2px; border: 1px solid var(--border); background: #ffffff; }
+.prop-row input:disabled { background: var(--panel-light); color: var(--text-muted); }
+.prop-row.animated label { color: var(--accent); font-weight: 600; }
+.prop-row button { padding: 3px 8px; }
+
+.prop-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+/* ==========================================================================
+   4. Stage
+   ========================================================================== */
+.stage {
+  container-type: size;            /* lets the canvas size itself from this box */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+#canvas {
+  /* Fit a 16:9 box inside the stage: as wide as possible without overflowing the height */
+  width: min(100cqw, 100cqh * 16 / 9);
+  aspect-ratio: 16 / 9;
+  background: #ffffff;
+  outline: 2px solid var(--border);   /* outline, not border: keeps pointer math exact */
+  cursor: default;
+  touch-action: none;
+}
+
+/* Export mode (?export=1): only the canvas, at its real pixel size */
+body.export-mode .panel,
+body.export-mode .timeline { display: none; }
+body.export-mode .app { display: block; height: auto; }
+body.export-mode .stage { padding: 0; container-type: normal; display: block; }
+body.export-mode #canvas { width: auto; outline: none; display: block; }
+
+/* ==========================================================================
+   5. Timeline
+   ========================================================================== */
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-top: 2px solid var(--border);
+  min-height: 0;
+}
+
+.timeline-scroll {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.timeline-content {
+  position: relative;     /* the playhead layer is positioned against this */
+  min-height: 100%;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: var(--label-width) 1fr;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.track-label {
+  padding: 4px 8px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: calc(var(--row-height) - 8px);
+}
+
+.lane {
+  position: relative;
+  min-height: var(--row-height);
+}
+
+/* Ruler */
+.ruler-row {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--panel-light);
+  border-bottom: 1px solid var(--border);
+}
+
+.ruler { cursor: ew-resize; height: var(--row-height); overflow: hidden; }
+
+.tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--border-soft);
+  padding-left: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: var(--row-height);
+  pointer-events: none;
+}
+
+.tick.major { border-left-color: var(--border); }
+
+/* Shape group header row */
+.group-row { background: var(--panel-light); cursor: pointer; }
+.group-row .track-label { font-weight: 600; }
+.group-row.selected .track-label { background: var(--accent); color: #ffffff; }
+.property-row .track-label { padding-left: 20px; color: var(--text-muted); }
+
+/* Clips */
+.clip {
+  position: absolute;
+  height: calc(var(--row-height) - 4px);
+  margin-top: 2px;
+  background: var(--clip);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  line-height: calc(var(--row-height) - 6px);
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.clip.selected { border: 2px solid var(--accent); background: var(--accent-light); }
+
+.clip-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  background: var(--border-soft);
+}
+
+.clip-handle.left  { left: 0; }
+.clip-handle.right { right: 0; }
+
+/* Playhead: a layer over the lanes (not the labels), full content height */
+.playhead-layer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--label-width);
+  right: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--accent);
+}
+
+/* Clip editor popover */
+.clip-editor {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 10;
+  width: 220px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--panel-light);
+  border: 2px solid var(--border);
+}
+
+.clip-editor label {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: center;
+}
+
+.clip-editor input, .clip-editor select { width: 100%; min-width: 0; }
+.clip-editor input[type="color"] { height: 26px; padding: 0 2px; border: 1px solid var(--border); }
+.clip-editor-title { font-weight: 600; }
+
+.clip-editor-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   6. Controls (timeline toolbar + export dialog)
+   ========================================================================== */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--border);
+}
+
+.controls #play-btn { width: 64px; }
+.controls input[type="number"] { width: 60px; }
+.control-check { display: flex; align-items: center; gap: 4px; }
+.time-readout { font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.spacer { flex: 1; }
+#export-btn { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+.export-dialog {
+  width: 300px;
+  padding: 16px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 0;
+}
+
+.export-dialog::backdrop { background: rgba(0, 0, 0, 0.3); }
+
+.export-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.export-dialog label {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+}
+
+.export-dialog progress { width: 100%; accent-color: var(--accent); }
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+}
