@@ -1,4 +1,4 @@
-# Mini Animator
+# Block-FX
 
 A minimal 2D animation editor that runs in the browser. Add shapes, animate their properties on a timeline, preview the result on a WebGL stage, and export the animation as **MP4** or **GIF**.
 
@@ -45,8 +45,8 @@ Built with plain HTML/CSS, vanilla JavaScript (ES modules), Three.js (WebGL2) an
 ### Install and run
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/JazzXHiro/Block-FX.git
+cd Block-FX
 npm install
 npm start
 ```
